@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIY - Quick Nature Guide</title>
+    <link rel="stylesheet" href="/stylesheet.css">
+</head>
+<body>
+    <div class="grid-container" id="loading-container">
+        <div class="single-cols">
+            <div id="circle", class="blink_me loader">
+                <div id="child">Loading</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (ev) => {
+        document.getElementById('loading-container').style.display = 'None';
+    });
+</script>
+</html>

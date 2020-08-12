@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIY - Quick Nature Guide</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <link rel=stylesheet href=stylesheet.css>
+</head>
+
+<body>
+    
+    <div class="grid-container">
+        <div class="single-cols">
+            <h1>AIY - Quick Nature Guide</h1>
+        </div>
+
+        <div class="single-cols">
+            <img src="stream.mjpg" alt="">
+        </div>
+
+        <div>
+            <form method="POST" id="parentForm" enctype="multipart/form-data" action="/index/new">
+                <input id="plants" type="button" value="Plants" onclick="submitChildForm('plants')">  
+                <input id="insects" type="button" value="Insect"  onclick="submitChildForm('insects')">  
+                <input id="birds" type="button" value="Bird"  onclick="submitChildForm('birds')">  
+                
+                <input id="parentFormInput" name="model" type="hidden" value="None" >  
+            </form>   
+            
+        </div>
+            <input type="submit" value="Capture" id="submitBtn" disabled form="parentForm">
+        <div>
+        
+        </div>
+        
+    </div>
+    
+</body>
+
+<script>
+    
+    function submitChildForm(model) {
+        
+        turnBoxOff();
+        
+        let category = document.getElementById("parentFormInput");
+        category.value = model;
+        
+        let data = new FormData();
+        data.append("model", model)
+        
+        
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/selfPost");
+        
+        xhr.onload = () => {
+            let colour = null;
+            if (model == 'plants') {
+                colour = 'green';
+            } else if (model == 'insects') {
+                colour = 'yellow';
+            } else if (model == 'birds') {
+                colour = 'blue';
+            }
+            
+            document.getElementById(model).style.backgroundColor = colour;
+            document.getElementById("submitBtn").removeAttribute("disabled");
+        }
+        xhr.send(data);
+        
+        return false;
+    }
+    
+    function turnBoxOff() {
+        const modelList = ['plants', 'insects', 'birds'];
+            
+        modelList.forEach((category) => {
+            document.getElementById(category).style.backgroundColor = 'WHITE';
+        });
+    
+    }
+    
+</script>
+
