@@ -21,8 +21,7 @@ class StreamingOutput(object):
 
     def write(self, buf):
         if buf.startswith(b'\xff\xd8'):
-            # New frame, copy the existing buffer's content and notify all
-            # clients it's available
+            # New frame, copy the existing buffer's content and notify all clients it's available
             self.buffer.truncate()
             with self.condition:
                 self.frame = self.buffer.getvalue()
@@ -33,6 +32,7 @@ class StreamingOutput(object):
 
 class StreamingHandler(server.BaseHTTPRequestHandler):    
     def do_GET(self):
+        global leds, colour, object_info, object_url
         if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
@@ -46,9 +46,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.send_header('Content-Length', len(content))
                 self.end_headers()
                 self.wfile.write(content)
-                content_type = self.headers.get('Content-Type')
-            
-            global leds
+       
             leds.update(Leds.rgb_on(colour))
             
         elif self.path == '/stream.mjpg':
@@ -83,8 +81,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 self.wfile.write(stylesheet.read())
                 
         elif self.path == '/info':
-            global colour, object_info
-            
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
             self.end_headers()
@@ -92,12 +88,11 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             with open("info.html", "rb") as content_file:
                 content = content_file.read()
                 self.wfile.write(content)
-                
-            leds.update(Leds.rgb_pattern(colour))
             
             try:
-                obj_output = '<html><body>'
-                obj_output += '<div class="grid-container">'
+                leds.update(Leds.rgb_pattern(colour))
+                
+                obj_output = '<div class="grid-container">'
                 obj_output += '<div class="single-cols">'
                 obj_output += '<h1>AIY - Quick Nature Guide</h1>'
                 obj_output += '</div>'
@@ -107,23 +102,23 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 obj_output += '<div class="single-cols">'
 
                 obj_names = launch_inaturalist(object_name)
-                object_info = search_inaturalist(obj_names)
+                object_info, object_url = search_inaturalist(obj_names)
                 leds.update(Leds.rgb_on(colour))
                 
                 obj_output += '<h2>{}</h2>'.format(obj_names[1])
                 obj_output += '</div>'
                 obj_output += '<div class="single-cols">'
-                obj_output += '<p>{}</p>'.format(object_info)
-                #obj_output += '</div>'
+                obj_output += '<p id="moreBtn" class="0">{}<br><br>'.format(object_info)
+                obj_output += '<span id="moreInfo"><a href={} target="_blank">Click here</a> for more info</span>'.format(object_url)
+                obj_output += '</p>'
     
             except:
                 obj_output += '<h2>Unknown object</h2>'
                 obj_output += '</div>'
                 obj_output += '<div class="single-cols">'
-                obj_output += '<p>Sorry, I could not retrieve the name of the object. Please try again</p>'
-                #obj_output += '</div>'
+                obj_output += '<p>Sorry, I could not retrieve any information. Please try again.</p>'
                 
-                colour = (255,255,255)
+                colour = (255, 255, 255)
                 leds.update(Leds.rgb_on(colour))
                 
             finally:
@@ -131,7 +126,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 obj_output += '<input type="submit" value="Go HomePage">'
                 obj_output += '</form></div>'
                 obj_output += '</div>'
-                obj_output += '</body></html>'
                 self.wfile.write(obj_output.encode())
                 
                 colour = (255,255,255)
@@ -153,9 +147,8 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             
     def do_POST(self):
+        global colour, object_name
         if self.path == ('/selfPost'):
-            global colour
-            
             try:
                 ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
                 pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
@@ -164,17 +157,16 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 
                 if ctype == 'multipart/form-data':
                     fields = cgi.parse_multipart(self.rfile, pdict)
-                    print(fields)
                     
                     for model, model_type in fields.items():
                         model_type = model_type[0].decode()
                         
                         if model_type == 'plants':
-                            colour = (0, 255, 0)
+                            colour = (20, 255, 20)
                         elif model_type == 'insects':
-                            colour = (255, 255, 0)
+                            colour = (255, 255, 20)
                         elif model_type == 'birds':
-                            colour = (0, 0, 255)
+                            colour = (0, 153, 255)
                         else:
                             colour = (255, 255, 255)
             except:
@@ -195,10 +187,8 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             pdict['CONTENT-LENGTH'] = content_len
             
             if ctype == 'multipart/form-data':
-                global object_name
                 fields = cgi.parse_multipart(self.rfile, pdict)
-                print(fields)
-
+                
                 for model, model_type in fields.items():
                     model_type = model_type[0].decode()
                     object_name = model_type
@@ -214,19 +204,26 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
 
    
-object_name, object_info = None, None
-
-leds = Leds()
-leds.pattern = Pattern.breathe(1000)
+object_name, object_info, object_url = None, None, None
 colour = (255, 255, 255) # white as default
+leds = Leds()
+
+leds.pattern = Pattern.breathe(1000)
+
 
 with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
     output = StreamingOutput()
     camera.start_recording(output, format='mjpeg')
     try:
         address = ('', 8000)
+        print("Your webpage is being served at http://your-pi-address:8000/")
         server = StreamingServer(address, StreamingHandler)
         server.serve_forever()
+        
     finally:
         camera.stop_recording()
         leds.update(Leds.rgb_off())
+        image = [img for img in os.listdir(os.getcwd()) if img.endswith('jpg')]
+        os.remove(image[0])
+        
+        

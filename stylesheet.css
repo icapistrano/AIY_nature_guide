@@ -9,7 +9,25 @@ h1 {
 
 h2 {
     float:left;
-    padding-left: 1%;
+    padding-left: 5px;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+p {
+    margin-top: 2px;
+    padding: 10px;
+    border: 2px black solid;
+    text-align: left;
+}
+
+input {
+    border-radius: 5px;
+    padding: 5% 5px;
+    width: auto;
+    min-width: 150px;
+    margin: 10px auto;
+    display: block;
 }
 
 .grid-container {
@@ -31,18 +49,16 @@ h2 {
     width: 100%;
     max-width: 640px;
     height: auto;
+    margin-bottom:10px;
 }
 
-input {
-    padding: 5% 5px;
-    width: auto;
-    min-width: 50%;
-    margin: 10px auto;
-    display: block;
+.bold {
+    font-weight: bold;
 }
 
 #circle {
-    margin-top: 5%;
+
+    margin-top: 50%;
     height: 200px;
     width: 200px;
     background-color: #ededed;
@@ -52,6 +68,10 @@ input {
 
 #child {
     line-height: 200px;
+}
+
+#moreInfo {
+    display: none;
 }
 
 

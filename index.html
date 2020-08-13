@@ -9,7 +9,6 @@
 </head>
 
 <body>
-    
     <div class="grid-container">
         <div class="single-cols">
             <h1>AIY - Quick Nature Guide</h1>
@@ -19,9 +18,18 @@
             <img src="stream.mjpg" alt="">
         </div>
 
+        <div class="single-cols">
+            <p>
+                Welcome to Quick Nature Guide. A quick way to know about nature using the AIY vision kit.
+                <span id="first" class="bold">Click a button on the left to select the category.</span>
+                <span id="second">Point camera at object and press the capture button.</span>
+            
+            </p>
+        </div>
+
         <div>
             <form method="POST" id="parentForm" enctype="multipart/form-data" action="/index/new">
-                <input id="plants" type="button" value="Plants" onclick="submitChildForm('plants')">  
+                <input id="plants" type="button" value="Plant" onclick="submitChildForm('plants')">  
                 <input id="insects" type="button" value="Insect"  onclick="submitChildForm('insects')">  
                 <input id="birds" type="button" value="Bird"  onclick="submitChildForm('birds')">  
                 
@@ -29,7 +37,7 @@
             </form>   
             
         </div>
-            <input type="submit" value="Capture" id="submitBtn" disabled form="parentForm">
+            <input type="submit" value="Capture" id="submitBtn" disabled form="parentForm" class="bold">
         <div>
         
         </div>
@@ -39,17 +47,18 @@
 </body>
 
 <script>
-    
     function submitChildForm(model) {
-        
+        // this identify which model to run on inaturalist_classification.py and changes colour on both AIY kit and webpage
+        // sends an AJAX form to avoid reloading the page and allow cgi to parse the input values
+
         turnBoxOff();
         
+        // changes a hidden input value to be sent when capture is pressed
         let category = document.getElementById("parentFormInput");
         category.value = model;
         
         let data = new FormData();
         data.append("model", model)
-        
         
         let xhr = new XMLHttpRequest();
         xhr.open("POST", "/selfPost");
@@ -57,29 +66,32 @@
         xhr.onload = () => {
             let colour = null;
             if (model == 'plants') {
-                colour = 'green';
+                colour = 'rgb(71, 219, 71)';
             } else if (model == 'insects') {
-                colour = 'yellow';
+                colour = 'rgb(255, 255, 77)';
             } else if (model == 'birds') {
-                colour = 'blue';
+                colour = 'rgb(0, 153, 255)';
             }
             
             document.getElementById(model).style.backgroundColor = colour;
-            document.getElementById("submitBtn").removeAttribute("disabled");
+            document.getElementById("first").classList.remove("bold");
+            document.getElementById("second").classList.add("bold");
+
+            let parentSubmitBtn = document.getElementById("submitBtn");
+            parentSubmitBtn.removeAttribute("disabled");
+            parentSubmitBtn.style.backgroundColor = colour;
+            parentSubmitBtn.value = `Capture ${model.slice(0, -1)}`;
         }
         xhr.send(data);
-        
         return false;
     }
     
     function turnBoxOff() {
+        // set all buttons to default background colour
         const modelList = ['plants', 'insects', 'birds'];
-            
+        
         modelList.forEach((category) => {
             document.getElementById(category).style.backgroundColor = 'WHITE';
         });
-    
-    }
-    
+    } 
 </script>
-

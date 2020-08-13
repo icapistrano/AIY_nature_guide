@@ -19,6 +19,21 @@
 <script>
     document.addEventListener('DOMContentLoaded', (ev) => {
         document.getElementById('loading-container').style.display = 'None';
+        document.getElementById("moreBtn").addEventListener("click", extendInfo);
     });
+    
+    function extendInfo() {
+        let moreInfo = document.getElementById("moreInfo");
+        let moreBtn = document.getElementById("moreBtn");
+        
+        if (moreBtn.classList.contains("0") == true) {
+            moreBtn.classList.remove("0");
+            moreInfo.style.display = 'inline';
+        } else {
+            moreBtn.classList.add("0");
+            moreInfo.style.display = 'none';
+        }
+
+    }
 </script>
 </html>
