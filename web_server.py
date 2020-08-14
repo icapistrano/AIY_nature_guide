@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import io
 import cgi
@@ -6,10 +8,8 @@ import logging
 import socketserver
 from http import server
 from threading import Condition
-
 from aiy.board import Board
 from aiy.leds import Leds, Color, Pattern
-
 from get_model import launch_inaturalist, search_inaturalist
 
 
@@ -192,7 +192,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 for model, model_type in fields.items():
                     model_type = model_type[0].decode()
                     object_name = model_type
-                
+            
             self.send_response(301)
             self.send_header('Content-Type', 'text/html')
             self.send_header('Location', '/info')
@@ -203,7 +203,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-   
+# I know, query strings instead of global vars might be better    
 object_name, object_info, object_url = None, None, None
 colour = (255, 255, 255) # white as default
 leds = Leds()
@@ -223,7 +223,7 @@ with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
     finally:
         camera.stop_recording()
         leds.update(Leds.rgb_off())
-        image = [img for img in os.listdir(os.getcwd()) if img.endswith('jpg')]
+        image = [img for img in os.listdir(os.getcwd()) if img.endswith('jpg')] # deletes image captured by RPI cam
         os.remove(image[0])
         
         
